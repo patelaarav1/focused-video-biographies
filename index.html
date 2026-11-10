@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Focused Video Biographies</title>
+<meta name="description" content="Documentaries about one life at a time.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a film-archive index. Masthead, an add-a-film form, then a catalog of cards that each open on YouTube. */
+:root {
+  --bg: #eef0f3;
+  --surface: #ffffff;
+  --ink: #15171d;
+  --muted: #5d6270;
+  --line: #d4d8e0;
+  --accent: #a3262c;
+  --accent-ink: #ffffff;
+  --focus: #2f5bd1;
+  --display: "Bodoni Moda", "Didot", "Times New Roman", serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1116; --surface: #181b22; --ink: #eceef3; --muted: #9aa0ae;
+    --line: #2c303a; --accent: #e0545a; --accent-ink: #14060a; --focus: #7d9cf0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1116; --surface: #181b22; --ink: #eceef3; --muted: #9aa0ae;
+  --line: #2c303a; --accent: #e0545a; --accent-ink: #14060a; --focus: #7d9cf0;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body);
+  font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+.wrap { max-width: 1040px; margin: 0 auto; }
+
+header.mast {
+  padding-block: 48px 28px;
+  border-bottom: 3px double var(--line);
+  display: grid; gap: 10px;
+}
+.eyebrow {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--accent);
+}
+h1 {
+  font-family: var(--display); font-weight: 700; margin: 0;
+  font-size: clamp(2.3rem, 7vw, 4.4rem); line-height: 1; letter-spacing: -.01em;
+  text-wrap: balance;
+}
+h1 em { font-style: italic; font-weight: 500; }
+.sub { color: var(--muted); max-width: 60ch; margin: 0; }
+
+section.add {
+  margin-top: 32px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 20px;
+}
+section.add h2, .catalog-head h2 {
+  font-family: var(--display); font-weight: 500; font-size: 1.4rem; margin: 0 0 14px;
+}
+form { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+form .full { grid-column: 1 / -1; }
+label { display: grid; gap: 4px; font-size: 13px; font-weight: 500; color: var(--muted); min-width: 0; }
+input, textarea {
+  font: inherit; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 4px; padding: 9px 11px; width: 100%;
+}
+textarea { resize: vertical; min-height: 64px; }
+input:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--focus); outline-offset: 2px;
+}
+.form-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+button {
+  font: inherit; font-weight: 600; cursor: pointer; border-radius: 4px;
+  padding: 9px 18px; border: 1px solid var(--accent);
+  background: var(--accent); color: var(--accent-ink);
+}
+button.ghost { background: transparent; color: var(--muted); border-color: var(--line); font-weight: 500; padding: 5px 10px; font-size: 13px; }
+button.ghost:hover { color: var(--accent); border-color: var(--accent); }
+button:disabled { opacity: .5; cursor: default; }
+.msg { font-size: 13px; color: var(--muted); }
+.msg.err { color: var(--accent); }
+
+.catalog-head {
+  margin-top: 40px; display: flex; flex-wrap: wrap; gap: 12px;
+  align-items: baseline; justify-content: space-between;
+}
+.catalog-head h2 { margin: 0; }
+.count { font-family: var(--mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+#search { max-width: 280px; }
+
+.grid {
+  margin-top: 16px; display: grid; gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+article.film {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+  display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; min-width: 0;
+}
+.slate {
+  aspect-ratio: 16 / 9; max-width: 100%;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 18px, color-mix(in srgb, var(--ink) 6%, transparent) 18px 19px),
+    color-mix(in srgb, var(--accent) 9%, var(--surface));
+  display: grid; place-items: center; text-decoration: none; color: var(--ink);
+  border-bottom: 1px solid var(--line); position: relative;
+}
+.slate .play {
+  width: 58px; height: 40px; border-radius: 10px; background: var(--accent);
+  display: grid; place-items: center; transition: transform .15s;
+}
+.slate .play::after {
+  content: ""; border-left: 15px solid var(--accent-ink);
+  border-top: 9px solid transparent; border-bottom: 9px solid transparent; margin-left: 4px;
+}
+.slate:hover .play { transform: scale(1.08); }
+.slate .reel {
+  position: absolute; left: 12px; bottom: 10px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--muted);
+}
+.film .body { padding: 14px 16px 6px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.subject { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.film h3 { font-family: var(--display); font-weight: 500; font-size: 1.25rem; line-height: 1.2; margin: 0; overflow-wrap: anywhere; }
+.film h3 a { color: inherit; text-decoration: none; }
+.film h3 a:hover { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.note { color: var(--muted); font-size: 14px; margin: 0; overflow-wrap: anywhere; }
+.film .foot { padding: 10px 16px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.watch { color: var(--ink); font-weight: 600; font-size: 14px; text-decoration: none; }
+.watch:hover { color: var(--accent); }
+
+.empty {
+  margin-top: 16px; border: 1px dashed var(--line); border-radius: 6px;
+  padding: 36px 20px; text-align: center; color: var(--muted);
+}
+.empty strong { display: block; font-family: var(--display); font-weight: 500; font-size: 1.3rem; color: var(--ink); margin-bottom: 4px; }
+
+@media (max-width: 620px) {
+  form { grid-template-columns: 1fr; }
+  #search { max-width: none; width: 100%; }
+  header.mast { padding-block: 32px 22px; }
+}
+@media (prefers-reduced-motion: reduce) { .slate .play { transition: none; } }
+
+.slate { border: 0; padding: 0; width: 100%; cursor: pointer; font: inherit; overflow: hidden; }
+.slate img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.slate .play { position: relative; z-index: 1; }
+.slate .reel { z-index: 1; background: var(--surface); padding: 2px 6px; border-radius: 3px; }
+.player { aspect-ratio: 16 / 9; max-width: 100%; width: 100%; border: 0; display: block; background: #000; }
+html, body { margin: 0; }
+.section-head { margin-top: 36px; display: grid; gap: 2px; border-top: 1px solid var(--line); padding-top: 18px; }
+.section-head h3 { font-family: var(--display); font-weight: 500; font-size: 1.6rem; margin: 0; }
+.section-head p { margin: 0; color: var(--muted); max-width: 65ch; }
+#grid { display: block; margin-top: 0; }
+.section-grid { margin-top: 16px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.film h4 { font-family: var(--display); font-weight: 500; font-size: 1.2rem; line-height: 1.2; margin: 0; overflow-wrap: anywhere; }
+.length { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <span class="eyebrow">Documentary Collection</span>
+    <h1>Focused Video <em>Biographies</em></h1>
+    <p class="sub">Documentary films on the life and work of His Holiness Mahant Swami Maharaj, from the BAPS YouTube channel. Click a film to play it here.</p>
+  </header>
+
+  <div class="catalog-head">
+    <h2>The collection <span class="count" id="count"></span></h2>
+    <input id="search" type="search" placeholder="Search titles or people" aria-label="Search the collection">
+  </div>
+
+  <div class="empty" id="state"><strong>Loading the collection…</strong></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  let films = [];
+
+  function videoId(raw) {
+    let s = (raw || "").trim();
+    if (/^[\w-]{11}$/.test(s)) return s;
+    if (!/^https?:\/\//i.test(s)) s = "https://" + s;
+    let u; try { u = new URL(s); } catch (e) { return null; }
+    const host = u.hostname.replace(/^www\.|^m\./, "");
+    let id = null;
+    if (host === "youtu.be") id = u.pathname.slice(1).split("/")[0];
+    else if (host.endsWith("youtube.com")) {
+      id = u.searchParams.get("v");
+      if (!id) { const m = u.pathname.match(/^\/(embed|shorts|live|v)\/([\w-]{11})/); if (m) id = m[2]; }
+    }
+    return id && /^[\w-]{11}$/.test(id) ? id : null;
+  }
+  function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+
+  function render() {
+    const q = $("search").value.trim().toLowerCase();
+    const shown = films.filter(f => !q || (f.title + " " + f.subject + " " + f.note + " " + f.section).toLowerCase().includes(q));
+    $("count").textContent = films.length ? "· " + films.length + (films.length === 1 ? " film" : " films") : "";
+    const grid = $("grid"), state = $("state");
+    grid.replaceChildren();
+    if (!films.length) { state.hidden = false; state.replaceChildren(el("strong", null, "No documentaries yet"), document.createTextNode("Add YouTube links to videos.json to fill the collection.")); return; }
+    if (!shown.length) { state.hidden = false; state.replaceChildren(el("strong", null, "No matches"), document.createTextNode("Try a different name or title.")); return; }
+    state.hidden = true;
+    const groups = [];
+    shown.forEach(f => {
+      let g = groups.find(x => x.name === f.section);
+      if (!g) { g = { name: f.section, blurb: f.sectionNote, items: [] }; groups.push(g); }
+      if (!g.blurb && f.sectionNote) g.blurb = f.sectionNote;
+      g.items.push(f);
+    });
+    groups.forEach(g => {
+      if (g.name) {
+        const head = el("div", "section-head");
+        head.append(el("h3", null, g.name));
+        if (g.blurb) head.append(el("p", null, g.blurb));
+        grid.append(head);
+      }
+      const sg = el("div", "section-grid");
+      g.items.forEach(f => sg.append(card(f)));
+      grid.append(sg);
+    });
+  }
+
+  function card(f) {
+    const href = "https://www.youtube.com/watch?v=" + f.id;
+    const c = el("article", "film");
+    const slate = el("button", "slate");
+    slate.type = "button";
+    slate.setAttribute("aria-label", "Play " + f.title);
+    const img = el("img"); img.src = "https://i.ytimg.com/vi/" + f.id + "/hqdefault.jpg"; img.alt = ""; img.loading = "lazy"; img.onerror = () => img.remove();
+    slate.append(img, el("span", "play"), el("span", "reel", "REEL " + String(f.n).padStart(3, "0")));
+    slate.addEventListener("click", () => {
+      const fr = el("iframe", "player");
+      fr.src = "https://www.youtube-nocookie.com/embed/" + f.id + "?autoplay=1&rel=0";
+      fr.title = f.title;
+      fr.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+      fr.allowFullscreen = true;
+      slate.replaceWith(fr);
+    });
+    const body = el("div", "body");
+    if (f.subject) body.append(el("span", "subject", f.subject));
+    body.append(el("h4", null, f.title));
+    if (f.note) body.append(el("p", "note", f.note));
+    const foot = el("div", "foot");
+    const w = el("a", "watch", "Open on YouTube \u2197"); w.href = href; w.target = "_blank"; w.rel = "noopener";
+    foot.append(w);
+    if (f.length) foot.append(el("span", "length", f.length));
+    c.append(slate, body, foot);
+    return c;
+  }
+  $("search").addEventListener("input", render);
+
+  fetch("videos.json", { cache: "no-cache" })
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(list => {
+      films = (Array.isArray(list) ? list : []).map((v, i) => ({
+        id: videoId(v.url), title: String(v.title || "Untitled"),
+        subject: String(v.subject || ""), note: String(v.note || ""), n: i + 1,
+        section: String(v.section || ""), sectionNote: String(v.sectionNote || ""), length: String(v.length || "")
+      })).filter(v => v.id);
+      render();
+    })
+    .catch(() => { $("state").replaceChildren(el("strong", null, "Couldn't load the collection"), document.createTextNode("Check that videos.json is valid, then reload.")); });
+})();
+</script>
+</body>
+</html>
