@@ -177,7 +177,6 @@ html, body { margin: 0; }
 
   <div class="catalog-head">
     <h2>The collection <span class="count" id="count"></span></h2>
-    <input id="search" type="search" placeholder="Search titles or people" aria-label="Search the collection">
   </div>
 
   <div class="empty" id="state"><strong>Loading the collection…</strong></div>
@@ -206,13 +205,11 @@ html, body { margin: 0; }
   function el(tag, cls, text) { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
 
   function render() {
-    const q = $("search").value.trim().toLowerCase();
-    const shown = films.filter(f => !q || (f.title + " " + f.subject + " " + f.note + " " + f.section).toLowerCase().includes(q));
+    const shown = films;
     $("count").textContent = films.length ? "· " + films.length + (films.length === 1 ? " film" : " films") : "";
     const grid = $("grid"), state = $("state");
     grid.replaceChildren();
     if (!films.length) { state.hidden = false; state.replaceChildren(el("strong", null, "No documentaries yet"), document.createTextNode("Add YouTube links to videos.json to fill the collection.")); return; }
-    if (!shown.length) { state.hidden = false; state.replaceChildren(el("strong", null, "No matches"), document.createTextNode("Try a different name or title.")); return; }
     state.hidden = true;
     const groups = [];
     shown.forEach(f => {
@@ -261,7 +258,6 @@ html, body { margin: 0; }
     c.append(slate, body, foot);
     return c;
   }
-  $("search").addEventListener("input", render);
 
   fetch("videos.json", { cache: "no-cache" })
     .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
